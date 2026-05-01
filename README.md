@@ -29,6 +29,14 @@ Then open `http://<your-local-ip>:3000` from any device on your network.
 - **Center button** — Sends the center command immediately
 - Responsive layout, works on mobile
 
+## Important — Session vs. Saved Configuration
+
+**Apply only affects the current session.** Values sent via the Apply button are applied to the device in real time but are not written to the profile permanently. If VNM restarts or the profile is reloaded, the device will revert to its last saved configuration.
+
+To make changes permanent, use the **Save** button inside the VNM app (or via the interface if available) to overwrite the profile on disk.
+
+This tool is designed for **on-the-fly tuning** — adjust while driving, apply instantly, save when happy.
+
 ## Architecture
 
 ```
