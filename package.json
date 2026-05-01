@@ -1,5 +1,5 @@
 {
-  "name": "vnm-control-web",
+  "name": "vnm-base-control-web",
   "version": "1.0.0",
   "description": "Web interface for VNM SIMCENTER hardware",
   "main": "server.js",

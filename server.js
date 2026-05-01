@@ -74,7 +74,7 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, () => {
   console.log('');
-  console.log('  VNM Control Web Started');
+  console.log('  VNM Base Control Web Started');
   //console.log(`  → http://localhost:${PORT}`);
   //console.log(`  → Proxying API to http://${VNM_HOST}:${VNM_PORT}`);
   console.log('');
