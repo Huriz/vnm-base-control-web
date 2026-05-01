@@ -27,6 +27,7 @@ Then open `http://<your-local-ip>:3000` from any device on your network.
 - **Profile selector** — Switch between VNM profiles instantly
 - **Apply button** — All changes are staged locally and sent to the device at once
 - **Center button** — Sends the center command immediately
+- **Fullscreen button** — Hides the browser UI (address bar, tabs) for a cleaner view — press again or `Esc` to exit
 - Responsive layout, works on mobile
 
 ## Important — Session vs. Saved Configuration
