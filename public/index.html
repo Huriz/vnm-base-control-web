@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VNM SIMCENTER Web</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #161618;
+    --bg2:       #202024;
+    --bg3:       #28282e;
+    --bg4:       #303036;
+    --border:    #3a3a42;
+    --red:       #cc1515;
+    --red-dark:  #991010;
+    --orange:    #c85c00;
+    --orange2:   #d96800;
+    --green:     #3cc43c;
+    --text:      #e8e8e8;
+    --text2:     #999;
+    --text3:     #555;
+    --track:     #3a3a42;
+    --radius:    6px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-size: 13px;
+  }
+
+  /* ── HEADER ── */
+  #header {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg2);
+    border-bottom: 2px solid var(--red);
+    flex-shrink: 0;
+  }
+  #header-top {
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    height: 46px;
+    gap: 12px;
+  }
+  #header-tabs {
+    display: flex;
+    justify-content: center;
+    padding: 4px 16px 6px;
+    gap: 2px;
+    border-top: 1px solid var(--border);
+  }
+  #logo {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  #logo svg { width: 28px; height: 28px; flex-shrink: 0; }
+  #app-name {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #fff;
+  }
+
+  #conn-dot {
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 6px var(--red);
+    transition: background 0.3s, box-shadow 0.3s;
+    flex-shrink: 0;
+  }
+  #conn-dot.connected { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+  /* ── TABS ── */
+  #tabs {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    gap: 2px;
+  }
+  .tab {
+    padding: 8px 22px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text2);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: color 0.2s, background 0.2s;
+    letter-spacing: 0.3px;
+    border: none;
+    background: transparent;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    background: var(--red);
+    color: #fff;
+  }
+
+  /* ── LAYOUT ── */
+  #body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+
+  #content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+  }
+
+  /* ── PANELS ── */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .row { display: flex; gap: 14px; }
+  .col { display: flex; flex-direction: column; gap: 14px; }
+  .col-left { flex: 0 0 380px; }
+  .col-right { flex: 1; min-width: 0; }
+
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .card-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: var(--text2);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  /* ── CENTER BUTTON ── */
+  #btn-center {
+    display: block;
+    width: 100%;
+    padding: 13px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    margin-bottom: 4px;
+  }
+  #btn-center:hover { background: var(--bg4); border-color: #555; }
+  #btn-center:active { background: var(--bg); }
+
+  /* ── BUTTONS ROW ── */
+  .btn-row { display: flex; gap: 10px; justify-content: center; margin-top: 4px; margin-bottom: 4px; }
+  .btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 18px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .btn:hover { background: var(--bg4); border-color: #555; }
+  .btn:active { background: var(--bg); }
+  .btn svg { width: 14px; height: 14px; color: var(--text2); }
+
+  /* ── SLIDER CONTROL ── */
+  .ctrl {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 0;
+  }
+  .ctrl-label {
+    min-width: 120px;
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .ctrl-label.muted { color: var(--text2); }
+  .ctrl-slider { flex: 1; position: relative; }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    background: linear-gradient(
+      to right,
+      var(--orange) 0%,
+      var(--orange) var(--pct, 0%),
+      var(--track) var(--pct, 0%),
+      var(--track) 100%
+    );
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 15px; height: 15px;
+    border-radius: 50%;
+    background: #d06800;
+    border: 2px solid #e07c10;
+    cursor: pointer;
+    box-shadow: 0 0 4px rgba(0,0,0,0.5);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 15px; height: 15px;
+    border-radius: 50%;
+    background: #d06800;
+    border: 2px solid #e07c10;
+    cursor: pointer;
+  }
+
+  .ctrl-val {
+    width: 72px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-size: 13px;
+    text-align: center;
+    padding: 4px 4px;
+    outline: none;
+    -moz-appearance: textfield;
+  }
+  .ctrl-val::-webkit-inner-spin-button,
+  .ctrl-val::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  .ctrl-val:focus { border-color: var(--orange); }
+
+  /* ── TOGGLE ── */
+  .ctrl-toggle { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
+  .toggle-wrap {
+    position: relative;
+    width: 44px; height: 24px;
+    flex-shrink: 0;
+  }
+  .toggle-wrap input { display: none; }
+  .toggle-track {
+    position: absolute; inset: 0;
+    background: #3a3a3a;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border: 1px solid var(--border);
+  }
+  .toggle-thumb {
+    position: absolute;
+    width: 18px; height: 18px;
+    top: 2px; left: 2px;
+    background: #666;
+    border-radius: 50%;
+    transition: transform 0.2s, background 0.2s;
+    pointer-events: none;
+  }
+  .toggle-wrap input:checked ~ .toggle-track { background: #3a3020; border-color: var(--orange); }
+  .toggle-wrap input:checked ~ .toggle-thumb {
+    transform: translateX(20px);
+    background: var(--orange2);
+  }
+
+  /* ── SELECT CONTROL ── */
+  .ctrl-select {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 0;
+  }
+  select {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-size: 13px;
+    padding: 5px 10px;
+    outline: none;
+    cursor: pointer;
+    flex: 1;
+  }
+  select:focus { border-color: var(--orange); }
+
+
+  /* ── PROFILE BAR ── */
+  #profile-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 7px 16px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  #profile-bar label {
+    font-size: 11px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    white-space: nowrap;
+  }
+  #sel-profile {
+    flex: 1;
+    max-width: 320px;
+  }
+
+  /* ── GAME SETTINGS ── */
+  .game-ctrl {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--bg3);
+    gap: 12px;
+  }
+  .game-ctrl:last-child { border-bottom: none; }
+  .game-ctrl label { font-size: 13px; color: var(--text2); flex: 1; }
+  .game-ctrl-val {
+    width: 70px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-size: 13px;
+    text-align: center;
+    padding: 5px 8px;
+    outline: none;
+  }
+  .game-ctrl-val:focus { border-color: var(--orange); }
+
+  /* ── SEPARATOR ── (kept for Advanced FFB select spacing) */
+
+  /* ── SEPARATOR ── */
+  .sep { height: 1px; background: var(--border); margin: 8px 0; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── LOADING OVERLAY ── */
+  #loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    z-index: 200;
+  }
+  #loading-overlay.hidden { display: none; }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--red);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading-overlay span { font-size: 13px; color: var(--text2); }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 16px; left: 50%;
+    transform: translateX(-50%) translateY(60px);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 20px;
+    font-size: 13px;
+    color: var(--text2);
+    transition: transform 0.25s;
+    pointer-events: none;
+    z-index: 100;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+
+  /* responsive bottom room */
+  .spacer { height: 80px; }
+
+  /* ── RESPONSIVE MOBILE ── */
+  @media (max-width: 640px) {
+    #header {
+      flex-wrap: wrap;
+      height: auto;
+      padding: 8px 12px;
+      gap: 8px;
+    }
+    #logo { flex: 1; }
+    #conn-status { order: 2; }
+    #header-top { padding: 0 12px; height: 40px; }
+    #header-tabs {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      justify-content: center;
+      padding: 3px 12px 5px;
+    }
+    #header-tabs::-webkit-scrollbar { display: none; }
+    .tab { padding: 6px 14px; font-size: 12px; white-space: nowrap; }
+
+    #content { padding: 8px; }
+
+    .row { flex-direction: column; gap: 8px; }
+    .col-left { flex: none; width: 100%; }
+    .col-right { flex: none; width: 100%; }
+    .col[style*="width:320px"] { width: 100% !important; flex-shrink: 1 !important; }
+    .col[style*="max-width:480px"] { max-width: 100% !important; }
+
+    .ctrl-label { min-width: 90px; font-size: 12px; }
+    .ctrl-val { width: 48px; font-size: 12px; }
+
+    input[type="range"]::-webkit-slider-thumb { width: 20px; height: 20px; }
+    input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; }
+
+    .game-ctrl label { font-size: 12px; }
+    .game-ctrl-val { width: 60px; }
+
+    #apply-bar { padding: 0 12px; }
+    #apply-btn { padding: 8px 24px; font-size: 12px; }
+    .spacer { height: 70px; }
+  }
+
+  /* ── APPLY BAR ── */
+  #apply-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 8px 12px;
+    gap: 6px;
+    z-index: 50;
+  }
+  #apply-status {
+    text-align: center;
+    min-height: 16px;
+  }
+  #apply-btn {
+    width: 100%;
+    padding: 11px 0;
+    background: var(--red);
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  #apply-btn:hover { background: #e01515; }
+  #apply-btn:active { background: var(--red-dark); }
+  #apply-btn:disabled { background: #444; color: #777; cursor: not-allowed; }
+  #apply-status {
+    font-size: 12px;
+    color: var(--text2);
+    text-align: center;
+    min-height: 16px;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <div id="header-top">
+    <div id="logo">
+      <svg viewBox="0 0 32 32" fill="none">
+        <polygon points="16,2 30,28 2,28" fill="none" stroke="#cc1515" stroke-width="2.5"/>
+        <text x="16" y="23" text-anchor="middle" fill="white" font-size="11" font-weight="bold" font-family="sans-serif">V</text>
+      </svg>
+      <span id="app-name">VNM Control Web</span>
+    </div>
+    <div id="conn-dot"></div>
+  </div>
+  <div id="header-tabs">
+    <button class="tab active" data-tab="basic">Basic</button>
+    <button class="tab" data-tab="advanced">Advanced</button>
+    <button class="tab" data-tab="gamesettings">Game Settings</button>
+  </div>
+</div>
+
+<!-- PROFILE BAR -->
+<div id="profile-bar">
+  <label>Profile</label>
+  <select id="sel-profile" onchange="profileChange(this.value)">
+    <option value="">—</option>
+  </select>
+</div>
+
+<!-- BODY -->
+<div id="body">
+
+
+  <!-- CONTENT -->
+  <div id="content">
+
+    <!-- ═══════════════════════════════ BASIC TAB ═══════════════════════════════ -->
+    <div id="tab-basic" class="tab-panel active">
+      <div class="col" style="max-width:520px">
+
+        <div class="card">
+          <button id="btn-center" onclick="doCenter()">CENTER</button>
+          <div class="sep"></div>
+          <div class="ctrl">
+            <span class="ctrl-label">Steering Range</span>
+            <div class="ctrl-slider">
+              <input type="range" id="sl-D100001" min="0" max="1080" value="900" oninput="sliderInput(this,'D100001')">
+            </div>
+            <input type="number" class="ctrl-val" id="val-D100001" value="900" onchange="valInput('D100001',this.value)">
+          </div>
+          <div class="ctrl">
+            <span class="ctrl-label">Overall Gain</span>
+            <div class="ctrl-slider">
+              <input type="range" id="sl-D100002" min="0" max="100" value="100" oninput="sliderInput(this,'D100002')">
+            </div>
+            <input type="number" class="ctrl-val" id="val-D100002" value="100" onchange="valInput('D100002',this.value)">
+          </div>
+          <div class="ctrl">
+            <span class="ctrl-label">Overall Filter</span>
+            <div class="ctrl-slider">
+              <input type="range" id="sl-D100003" min="0" max="500" value="0" oninput="sliderInput(this,'D100003')">
+            </div>
+            <input type="number" class="ctrl-val" id="val-D100003" value="0" onchange="valInput('D100003',this.value)">
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">User Effects</div>
+          <div class="ctrl">
+            <span class="ctrl-label">Damper Gain</span>
+            <div class="ctrl-slider">
+              <input type="range" id="sl-D100004" min="0" max="100" value="10" oninput="sliderInput(this,'D100004')">
+            </div>
+            <input type="number" class="ctrl-val" id="val-D100004" value="10" onchange="valInput('D100004',this.value)">
+          </div>
+          <div class="ctrl">
+            <span class="ctrl-label">Friction Gain</span>
+            <div class="ctrl-slider">
+              <input type="range" id="sl-D100005" min="0" max="100" value="9" oninput="sliderInput(this,'D100005')">
+            </div>
+            <input type="number" class="ctrl-val" id="val-D100005" value="9" onchange="valInput('D100005',this.value)">
+          </div>
+          <div class="ctrl">
+            <span class="ctrl-label">Inertia Gain</span>
+            <div class="ctrl-slider">
+              <input type="range" id="sl-D100006" min="0" max="100" value="13" oninput="sliderInput(this,'D100006')">
+            </div>
+            <input type="number" class="ctrl-val" id="val-D100006" value="13" onchange="valInput('D100006',this.value)">
+          </div>
+          <div class="ctrl">
+            <span class="ctrl-label muted">Spring Gain</span>
+            <div class="ctrl-slider">
+              <input type="range" id="sl-D100007" min="0" max="100" value="0" oninput="sliderInput(this,'D100007')">
+            </div>
+            <input type="number" class="ctrl-val" id="val-D100007" value="0" onchange="valInput('D100007',this.value)">
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════ ADVANCED TAB ═══════════════════════════════ -->
+    <div id="tab-advanced" class="tab-panel">
+      <div class="col" style="max-width:520px">
+        <div class="ctrl-select">
+          <span class="ctrl-label" style="min-width:100px;font-weight:600">FFB Mode</span>
+          <select id="sel-ffbmode" onchange="ffbModeChange(this.value)">
+            <option value="">—</option>
+          </select>
+        </div>
+        <div class="card">
+          <div class="card-title">Advanced Settings</div>
+          <div class="ctrl">
+            <span class="ctrl-label">DI Ratio</span>
+            <div class="ctrl-slider"><input type="range" id="sl-D200001" min="0" max="100" value="80" oninput="sliderInput(this,'D200001')"></div>
+            <input type="number" class="ctrl-val" id="val-D200001" value="80" onchange="valInput('D200001',this.value)">
+          </div>
+          <div class="ctrl">
+            <span class="ctrl-label">Damper Filter</span>
+            <div class="ctrl-slider"><input type="range" id="sl-D200002" min="0" max="500" value="44" oninput="sliderInput(this,'D200002')"></div>
+            <input type="number" class="ctrl-val" id="val-D200002" value="44" onchange="valInput('D200002',this.value)">
+          </div>
+          <div class="ctrl">
+            <span class="ctrl-label">Inertia Filter</span>
+            <div class="ctrl-slider"><input type="range" id="sl-D200003" min="0" max="500" value="29" oninput="sliderInput(this,'D200003')"></div>
+            <input type="number" class="ctrl-val" id="val-D200003" value="29" onchange="valInput('D200003',this.value)">
+          </div>
+          <div class="ctrl">
+            <span class="ctrl-label">Friction Filter</span>
+            <div class="ctrl-slider"><input type="range" id="sl-D200004" min="0" max="500" value="46" oninput="sliderInput(this,'D200004')"></div>
+            <input type="number" class="ctrl-val" id="val-D200004" value="46" onchange="valInput('D200004',this.value)">
+          </div>
+
+          <div class="ctrl">
+            <span class="ctrl-label">Bumpstop Range</span>
+            <div class="ctrl-slider"><input type="range" id="sl-D200007" min="0" max="1080" value="920" oninput="sliderInput(this,'D200007')"></div>
+            <input type="number" class="ctrl-val" id="val-D200007" value="920" onchange="valInput('D200007',this.value)">
+          </div>
+          <div class="ctrl">
+            <span class="ctrl-label">Lock Strength</span>
+            <div class="ctrl-slider"><input type="range" id="sl-D200008" min="0" max="10000" value="10000" oninput="sliderInput(this,'D200008')"></div>
+            <input type="number" class="ctrl-val" id="val-D200008" value="10000" onchange="valInput('D200008',this.value)">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════ GAME SETTINGS TAB ═══════════════════════════════ -->
+    <div id="tab-gamesettings" class="tab-panel">
+      <div class="card">
+        <div class="card-title">Game Settings</div>
+        <div class="game-ctrl"><label>Constant Gain</label><input type="number" class="game-ctrl-val" id="gs-D400001" value="100" min="0" max="100" onchange="gameCtrlChange('D400001',this.value)"></div>
+        <div class="game-ctrl"><label>Ramp Gain</label><input type="number" class="game-ctrl-val" id="gs-D400002" value="0" min="0" max="100" onchange="gameCtrlChange('D400002',this.value)"></div>
+        <div class="game-ctrl"><label>Spring Gain</label><input type="number" class="game-ctrl-val" id="gs-D400003" value="0" min="0" max="100" onchange="gameCtrlChange('D400003',this.value)"></div>
+        <div class="game-ctrl"><label>Damper Gain</label><input type="number" class="game-ctrl-val" id="gs-D400004" value="0" min="0" max="100" onchange="gameCtrlChange('D400004',this.value)"></div>
+        <div class="game-ctrl"><label>Inertia Gain</label><input type="number" class="game-ctrl-val" id="gs-D400005" value="0" min="0" max="100" onchange="gameCtrlChange('D400005',this.value)"></div>
+        <div class="game-ctrl"><label>Friction Gain</label><input type="number" class="game-ctrl-val" id="gs-D400006" value="0" min="0" max="100" onchange="gameCtrlChange('D400006',this.value)"></div>
+        <div class="game-ctrl"><label>Square Gain</label><input type="number" class="game-ctrl-val" id="gs-D400007" value="0" min="0" max="100" onchange="gameCtrlChange('D400007',this.value)"></div>
+        <div class="game-ctrl"><label>Triangle Gain</label><input type="number" class="game-ctrl-val" id="gs-D400008" value="0" min="0" max="100" onchange="gameCtrlChange('D400008',this.value)"></div>
+        <div class="game-ctrl"><label>Sine Gain</label><input type="number" class="game-ctrl-val" id="gs-D400009" value="0" min="0" max="100" onchange="gameCtrlChange('D400009',this.value)"></div>
+        <div class="game-ctrl"><label>Sawtooth Up Gain</label><input type="number" class="game-ctrl-val" id="gs-D400010" value="0" min="0" max="100" onchange="gameCtrlChange('D400010',this.value)"></div>
+        <div class="game-ctrl"><label>Sawtooth Down Gain</label><input type="number" class="game-ctrl-val" id="gs-D400011" value="0" min="0" max="100" onchange="gameCtrlChange('D400011',this.value)"></div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+  </div><!-- /content -->
+</div><!-- /body -->
+
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <span>Connecting to VNM…</span>
+</div>
+
+<div id="apply-bar">
+  <span id="apply-status"></span>
+  <button id="apply-btn" onclick="applyAll()">APPLY</button>
+</div>
+<div id="toast"></div>
+
+<script>
+// ─── API ────────────────────────────────────────────────────────────────────
+const API_BASE = '/api';
+
+async function apiGet(id) {
+  const r = await fetch(`${API_BASE}/control/${id}`);
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+async function apiPost(id, action, value) {
+  const body = { action };
+  if (value !== undefined) body.value = (action === 'select') ? value : Number(value);
+  const r = await fetch(`${API_BASE}/control/${id}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+async function apiList() {
+  const r = await fetch(`${API_BASE}/control/list`);
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+// ─── Connection ──────────────────────────────────────────────────────────────
+let connected = false;
+const $dot = document.getElementById('conn-dot');
+
+function setConnected(state) {
+  connected = state;
+  $dot.classList.toggle('connected', state);
+}
+
+// ─── Slider fill ─────────────────────────────────────────────────────────────
+function updateFill(slider) {
+  const min = parseFloat(slider.min) || 0;
+  const max = parseFloat(slider.max) || 100;
+  const pct = ((parseFloat(slider.value) - min) / (max - min)) * 100;
+  slider.style.setProperty('--pct', pct.toFixed(1) + '%');
+}
+
+// Init all sliders
+document.querySelectorAll('input[type="range"]').forEach(updateFill);
+
+// ─── Slider interaction ───────────────────────────────────────────────────────
+function sliderInput(slider, id) {
+  const v = parseFloat(slider.value);
+  updateFill(slider);
+  const valEl = document.getElementById('val-' + id);
+  if (valEl) valEl.value = v;
+}
+
+function valInput(id, raw) {
+  const v = parseFloat(raw);
+  if (isNaN(v)) return;
+  const sl = document.getElementById('sl-' + id);
+  if (sl) {
+    sl.value = Math.min(Math.max(v, parseFloat(sl.min)), parseFloat(sl.max));
+    updateFill(sl);
+  }
+}
+
+// ─── Game settings ────────────────────────────────────────────────────────────
+function gameCtrlChange(id, raw) {
+  // UI-only: no API call until Apply
+}
+
+// ─── Center button ────────────────────────────────────────────────────────────
+async function doCenter() {
+  if (!connected) { showToast('Not connected to VNM'); return; }
+  try {
+    await apiPost('D100008', 'click');
+    showToast('Center sent');
+  } catch {
+    showToast('Failed to send Center');
+  }
+}
+
+// ─── Apply All ────────────────────────────────────────────────────────────────
+async function applyAll() {
+  if (!connected) { showToast('Not connected to VNM'); return; }
+  $applyBtn.disabled = true;
+  $applyStatus.textContent = 'Sending…';
+
+  const tasks = [];
+
+  document.querySelectorAll('input[type="range"][id^="sl-"]').forEach(sl => {
+    const id = sl.id.slice(3);
+    const v = parseFloat(sl.value);
+    if (!isNaN(v)) tasks.push(apiPost(id, 'set', v).catch(() => {}));
+  });
+
+  document.querySelectorAll('input.game-ctrl-val[id^="gs-"]').forEach(inp => {
+    const id = inp.id.slice(3);
+    const v = parseFloat(inp.value);
+    if (!isNaN(v)) tasks.push(apiPost(id, 'set', v).catch(() => {}));
+  });
+
+  const ffbSel = document.getElementById('sel-ffbmode');
+  if (ffbSel && ffbSel.value) {
+    const ffbIdx = ffbItems.indexOf(ffbSel.value);
+    if (ffbIdx !== -1) tasks.push(
+      fetch(`${API_BASE}/control/D100010`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'select', value: ffbIdx }),
+      }).catch(() => {})
+    );
+  }
+
+  await Promise.all(tasks);
+  $applyStatus.textContent = `Applied ${tasks.length} controls`;
+  setTimeout(() => { $applyStatus.textContent = ''; }, 3000);
+  $applyBtn.disabled = false;
+}
+
+// ─── Save (device settings) ───────────────────────────────────────────────────
+async function doSave(id, label) {
+  if (!connected) { showToast('Not connected to VNM'); return; }
+  try {
+    await apiPost(id, 'click');
+    showToast(`${label} saved`);
+  } catch {
+    showToast(`Failed to save ${label}`);
+  }
+}
+
+// ─── FFB Mode ─────────────────────────────────────────────────────────────────
+const FFB_DESC = {
+  'Direct Input':    { name: 'Direct Input', text: 'Classic DirectInput API. Forces come directly from the game engine with fast, responsive feedback. Compatible with virtually all racing games.' },
+  'Telemetry':       { name: 'Telemetry',    text: 'Real-time physics telemetry via the VNM Plugin system. Forces are calculated from actual physics data for maximum realism. Requires a compatible game plugin.' },
+  'iRacing 360Hz':   { name: 'iRacing 360Hz', text: 'Native iRacing support via shared memory API at 360Hz. High-fidelity force feedback optimized specifically for iRacing.' },
+  'TIC':             { name: 'TIC',          text: 'TIC Mode is a unique Force Feedback mode that combines forces from both DirectInput and Telemetry. You can control the balance between them by adjusting the DI Ratio setting.' },
+};
+
+function ffbModeChange(val) {
+  // UI-only: no API call until Apply
+}
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+let toastTimer;
+const $toast = document.getElementById('toast');
+function showToast(msg) {
+  $toast.textContent = msg;
+  $toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => $toast.classList.remove('show'), 2200);
+}
+
+// ─── Tabs ─────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ─── Load control values ──────────────────────────────────────────────────────
+const SLIDER_IDS = [
+  'D100001','D100002','D100003','D100004','D100005','D100006','D100007',
+  'D200001','D200002','D200003','D200004','D200007','D200008',
+];
+const GAME_IDS = [
+  'D400001','D400002','D400003','D400004','D400005','D400006',
+  'D400007','D400008','D400009','D400010','D400011',
+];
+
+function applyValue(id, value) {
+  // Slider controls
+  const sl  = document.getElementById('sl-' + id);
+  const val = document.getElementById('val-' + id);
+  if (sl) {
+    sl.value = value;
+    updateFill(sl);
+  }
+  if (val) val.value = value;
+
+  // Game setting inputs
+  const gs = document.getElementById('gs-' + id);
+  if (gs) gs.value = value;
+}
+
+let profileItems = [];
+let ffbItems = [];
+
+// Resolve a select value: if numeric (0-based index), map to item name; else use as-is
+function resolveSelectValue(data, items) {
+  if (typeof data.value === 'number' && items.length) {
+    return items[Math.round(data.value)] ?? null;
+  }
+  return data.value ?? null;
+}
+
+async function loadFFBMode() {
+  try {
+    const data = await apiGet('D100010');
+    const sel = document.getElementById('sel-ffbmode');
+    if (!sel || !data) return;
+    ffbItems = data.items || data.options || data.values || [];
+    if (ffbItems.length) sel.innerHTML = ffbItems.map(o => `<option value="${o}">${o}</option>`).join('');
+    const cur = resolveSelectValue(data, ffbItems);
+    if (cur !== null) sel.value = cur;
+  } catch {}
+}
+
+async function loadProfile() {
+  try {
+    const data = await apiGet('D100009');
+    const sel = document.getElementById('sel-profile');
+    if (!sel || !data) return;
+    profileItems = data.items || data.options || data.values || [];
+    if (profileItems.length) sel.innerHTML = profileItems.map(o => `<option value="${o}">${o}</option>`).join('');
+    const cur = resolveSelectValue(data, profileItems);
+    if (cur !== null) sel.value = cur;
+  } catch {}
+}
+
+async function profileChange(profileName) {
+  if (!connected || !profileName) return;
+  const idx = profileItems.indexOf(profileName);
+  if (idx === -1) return;
+  try {
+    // API uses 0-based index for combobox
+    await fetch(`${API_BASE}/control/D100009`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'select', value: idx }),
+    });
+    await loadAllValues();
+  } catch {
+    showToast('Failed to change profile');
+  }
+}
+
+const $applyBtn    = document.getElementById('apply-btn');
+const $applyStatus = document.getElementById('apply-status');
+const $overlay     = document.getElementById('loading-overlay');
+
+function setApplyReady(ready) {
+  $applyBtn.disabled = !ready;
+  $overlay.classList.toggle('hidden', ready);
+  if (ready && $applyStatus.textContent === 'Loading…') $applyStatus.textContent = '';
+}
+
+// Overlay visible, button disabled until first load completes
+setApplyReady(false);
+
+async function loadAllValues() {
+  setApplyReady(false);
+  await Promise.all([
+    loadProfile(),
+    loadFFBMode(),
+    ...[...SLIDER_IDS, ...GAME_IDS].map(async id => {
+      try {
+        const data = await apiGet(id);
+        if (data && data.value !== undefined) applyValue(id, data.value);
+      } catch {}
+    }),
+  ]);
+  setApplyReady(true);
+}
+
+// ─── Polling ──────────────────────────────────────────────────────────────────
+async function poll() {
+  try {
+    await apiList();
+    if (!connected) {
+      setConnected(true);
+      await loadAllValues();
+    }
+  } catch {
+    if (connected) setApplyReady(false);
+    setConnected(false);
+  }
+}
+
+// Check every 3 seconds
+poll();
+setInterval(poll, 3000);
+
+// ─── Init fills ───────────────────────────────────────────────────────────────
+document.querySelectorAll('input[type="range"]').forEach(updateFill);
+</script>
+</body>
+</html>
