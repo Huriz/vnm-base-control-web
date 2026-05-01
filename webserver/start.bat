@@ -8,5 +8,5 @@ echo  VNM Base Control Web
 echo  http://%LOCAL_IP%:3000
 echo.
 start "" http://%LOCAL_IP%:3000
-node server.js
+node backend/server.js
 pause

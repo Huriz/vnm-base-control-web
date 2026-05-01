@@ -1,7 +1,6 @@
 {
   "name": "vnm-base-control-web",
-  "version": "1.0.0",
-  "description": "Web interface for VNM SIMCENTER hardware",
+  "description": "Web interface for VNM Base hardware",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

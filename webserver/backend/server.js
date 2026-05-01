@@ -57,9 +57,9 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Serve static files from public/
+  // Serve static files from ../frontend/
   let filePath = reqUrl.pathname === '/' ? '/index.html' : reqUrl.pathname;
-  filePath = path.join(__dirname, 'public', filePath);
+  filePath = path.join(__dirname, '..', 'frontend', filePath);
 
   fs.readFile(filePath, (err, data) => {
     if (err) {

@@ -1,11 +1,11 @@
 # VNM Base Control Web
 
-A browser-based control panel for the **VNM SIMCENTER** direct-drive wheelbase, handbrake, and pedals. Connects to the VNM REST API running locally and lets you manage all settings from any device on your network.
+A browser-based control panel for the **VNM BASE ** direct-drive wheelbase. Connects to the VNM REST API running locally and lets you manage all settings from any device on your network.
 
 ## Requirements
 
 - [Node.js](https://nodejs.org) v18 or higher
-- VNM SIMCENTER running with REST Server enabled *(Settings → Enable REST Server)*
+- VNM Base Control Web running with REST Server enabled *(Settings → Enable REST Server)*
 
 ## Quick Start
 
