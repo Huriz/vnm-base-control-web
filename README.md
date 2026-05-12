@@ -1,6 +1,6 @@
 # VNM Base Control Web
 
-A browser-based control panel for the **VNM BASE ** direct-drive wheelbase. Connects to the VNM REST API running locally and lets you manage all settings from any device on your network.
+A browser-based control panel for the **VNM Base ** direct-drive wheelbase. Connects to the VNM REST API running locally and lets you manage all settings from any device on your network.
 
 ## Requirements
 
@@ -9,18 +9,40 @@ A browser-based control panel for the **VNM BASE ** direct-drive wheelbase. Conn
 
 ## Quick Start
 
-Double-click **`start.bat`** — the browser opens automatically.
+**First run — right-click `webserver/start-vnm-control-web.bat` → Run as Administrator**
+
+The first time only, Administrator is required to:
+- Install Node.js automatically via `winget` (if not already installed)
+- Add a Windows Firewall inbound rule so phones and tablets on your local network can reach the server
+
+After that first run, you can double-click the launcher normally — no Administrator needed.
+
+Double-click **`webserver/start-vnm-control-web.bat`** — the browser opens automatically and prints your Local, Network, and Host URLs.
 
 Or from a terminal:
 
 ```bash
+cd webserver/backend
+npm install
 node server.js
 ```
 
-Then open `http://<your-local-ip>:3000` from any device on your network.
+When the launcher starts, it prints the addresses you can use:
+
+```
+  VNM Control Web
+  ================================
+  Local:   http://localhost:3001
+  Network: http://192.168.1.X:3001   ← open this on your phone
+  Host:    http://YOUR-PC-NAME:3001  ← alternative if DNS resolves
+  ================================
+```
+
+Port is configured in `webserver/backend/server.cfg` (default `PORT=3001`).
 
 ## Features
 
+- **VNM FFB** tab — Full-screen touch pad for on-the-fly FFB tuning: +1 / +5 / −1 / −5 Overall Gain and CENTER, all fire instantly without Apply
 - **Basic** tab — Steering range, overall gain/filter, user effects (damper, friction, inertia, spring)
 - **Advanced** tab — FFB mode selector, DI ratio, filters, bumpstop range, lock strength
 - **Game Settings** tab — Per-effect DirectInput gains (constant, ramp, spring, damper…)
@@ -41,7 +63,7 @@ This tool is designed for **on-the-fly tuning** — adjust while driving, apply 
 ## Architecture
 
 ```
-Browser → server.js (Node.js, port 3000) → VNM REST API (localhost:9000)
+Browser → webserver/backend/server.js (Node.js, port 3001) → VNM REST API (localhost:9000)
 ```
 
 No npm dependencies — uses only Node.js built-in modules.

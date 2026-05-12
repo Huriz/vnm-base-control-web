@@ -29,7 +29,7 @@
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: var(--bg);
     color: var(--text);
-    height: 100vh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -120,6 +120,86 @@
     color: #fff;
   }
 
+  /* ── RACE PAD ── */
+  #content:has(#tab-race.active) { padding: 0; overflow: hidden; position: relative; }
+
+  #tab-race { display: none; }
+  #tab-race.active {
+    display: block;
+    position: absolute;
+    inset: 0;
+  }
+
+  #race-pad {
+    position: absolute;
+    inset: 0;
+  }
+
+  .pad-slice {
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: clamp(22px, 6vw, 48px);
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: filter 0.1s;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .pad-slice:active { filter: brightness(1.4); }
+
+  /* +1 lighter red, +5 darker red */
+  .slice-tl { top: 0; left: 0;     background: #c48888; }
+  .slice-tr { top: 0; right: 0;    background: #8c5050; }
+  .slice-bl { bottom: 0; left: 0;  background: #6a94be; }
+  .slice-br { bottom: 0; right: 0; background: #4a6a98; }
+
+  .slice-tl .pad-label { transform: translate(-18%, -18%); }
+  .slice-tr .pad-label { transform: translate(18%, -18%); }
+  .slice-bl .pad-label { transform: translate(-18%, 18%); }
+  .slice-br .pad-label { transform: translate(18%, 18%); }
+
+  .pad-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1;
+    gap: 4px;
+  }
+  .pad-label small {
+    font-size: 0.38em;
+    font-weight: 700;
+    opacity: 0.8;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  #pad-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 46%;
+    height: 22%;
+    border-radius: 8px;
+    background: #4a4a54;
+    border: none;
+    color: #fff;
+    font-size: clamp(11px, 2.5vw, 16px);
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    z-index: 2;
+    transition: filter 0.1s;
+    user-select: none;
+  }
+  #pad-center:active { filter: brightness(1.4); }
+
   /* ── LAYOUT ── */
   #body {
     display: flex;
@@ -137,6 +217,7 @@
   /* ── PANELS ── */
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
+  #tab-race.active { display: flex; }
 
   .row { display: flex; gap: 14px; }
   .col { display: flex; flex-direction: column; gap: 14px; }
@@ -523,6 +604,7 @@
     <div id="conn-dot"></div>
   </div>
   <div id="header-tabs">
+    <button class="tab" data-tab="race">VNM FFB</button>
     <button class="tab active" data-tab="basic">Basic</button>
     <button class="tab" data-tab="advanced">Advanced</button>
     <button class="tab" data-tab="gamesettings">Game Settings</button>
@@ -543,6 +625,25 @@
 
   <!-- CONTENT -->
   <div id="content">
+
+    <!-- ═══════════════════════════════ RACE TAB ════════════════════════════════ -->
+    <div id="tab-race" class="tab-panel">
+      <div id="race-pad">
+        <button class="pad-slice slice-tl" onclick="raceFFB(1)">
+          <div class="pad-label"><span>+1</span><small>FFB</small></div>
+        </button>
+        <button class="pad-slice slice-tr" onclick="raceFFB(5)">
+          <div class="pad-label"><span>+5</span><small>FFB</small></div>
+        </button>
+        <button class="pad-slice slice-bl" onclick="raceFFB(-1)">
+          <div class="pad-label"><span>−1</span><small>FFB</small></div>
+        </button>
+        <button class="pad-slice slice-br" onclick="raceFFB(-5)">
+          <div class="pad-label"><span>−5</span><small>FFB</small></div>
+        </button>
+        <button id="pad-center" onclick="doCenter()">CENTER</button>
+      </div>
+    </div>
 
     <!-- ═══════════════════════════════ BASIC TAB ═══════════════════════════════ -->
     <div id="tab-basic" class="tab-panel active">
@@ -831,6 +932,16 @@ function ffbModeChange(val) {
   // UI-only: no API call until Apply
 }
 
+// ─── Race pad ─────────────────────────────────────────────────────────────────
+async function raceFFB(delta) {
+  if (!connected) { showToast('Not connected to VNM'); return; }
+  try {
+    await apiPost('D100002', delta > 0 ? 'inc' : 'dec', Math.abs(delta));
+  } catch {
+    showToast('Failed');
+  }
+}
+
 // ─── Fullscreen ───────────────────────────────────────────────────────────────
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
@@ -857,6 +968,9 @@ document.querySelectorAll('.tab').forEach(btn => {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    const isRace = btn.dataset.tab === 'race';
+    $applyBar.style.display = isRace ? 'none' : '';
+    document.querySelector('.spacer').style.display = isRace ? 'none' : '';
   });
 });
 
@@ -939,6 +1053,7 @@ async function profileChange(profileName) {
 
 const $applyBtn    = document.getElementById('apply-btn');
 const $applyStatus = document.getElementById('apply-status');
+const $applyBar    = document.getElementById('apply-bar');
 const $overlay     = document.getElementById('loading-overlay');
 
 function setApplyReady(ready) {
